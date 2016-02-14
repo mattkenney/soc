@@ -14,12 +14,18 @@
         %button{:name => 'e'} &gt;&gt;|
         %button{:name => 'u', :class => 'soc_at'} @
       - contexts.each do |ctx|
-        .soc_context= "#{ctx[:name]} (@#{ctx[:screen_name]}) #{ctx[:created_at]}"
-        - if ctx[:is_retweet]
-          %div retweet:
+        .soc_context
+          - if ctx[:is_retweet]
+            %b.soc_ref RT
+          %a{:href => ctx[:profile]}= "#{ctx[:name]} (@#{ctx[:screen_name]})"
+          %a{:href => ctx[:url]}= ctx[:created_at]
       .soc_content!= content_html
+      - if in_reply_to
+        .soc_context
+          %b.soc_ref RE
+          %input{:name => 't', :type => 'submit', :value => in_reply_to}
       .soc_footer
         %button{:name => 'p'} &lt;
         %button{:name => 'b'} &lt;&lt;
         %button{:name => 's'} |&lt;&lt;
-        %i.soc_status= message
+        %span.soc_status= message

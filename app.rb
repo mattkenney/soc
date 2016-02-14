@@ -49,23 +49,34 @@ helpers do
       :name => status[:user][:name],
       :screen_name => status[:user][:screen_name],
       :created_at => format_time(status[:created_at]),
+      :profile => "https://twitter.com/%s" %
+        [ status[:user][:screen_name] ],
+      :url => "https://twitter.com/%s/status/%s" %
+        [ status[:user][:screen_name], status[:id_str] ],
     }
   end
 
   def format_status(status, message = '')
     contexts = []
+    ctx = format_context(status)
     while true
-      ctx = format_context(status)
       contexts << ctx
       retweet = status[:retweeted_status]
       break if not retweet
-      ctx[:is_retweet] = true
       status = retweet
+      ctx = format_context(status)
+      ctx[:is_retweet] = true
     end
-    {
+    in_reply_to = false
+    if status[:in_reply_to_screen_name] and status[:in_reply_to_status_id_str]
+      in_reply_to = "https://twitter.com/%s/status/%s" %
+        [status[:in_reply_to_screen_name], status[:in_reply_to_status_id_str]]
+    end
+    result = {
       :contexts => contexts,
       :content_html => format_content_html(status),
       :message => message,
+      :in_reply_to => in_reply_to
     }
   end
 
