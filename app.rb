@@ -18,6 +18,7 @@
 #
 require 'haml'
 require 'omniauth-twitter'
+require 'pocket-ruby'
 require 'rack/session/redis'
 require 'redis'
 require 'sinatra'
@@ -36,6 +37,10 @@ configure do
   end
 
   set :haml, :escape_html => true
+end
+
+Pocket.configure do |config|
+  config.consumer_key = ENV['POCKET_CONSUMER_KEY']
 end
 
 helpers do
@@ -107,7 +112,7 @@ helpers do
         then
           result.gsub! url[:url], "<input name=\"t\" type=\"submit\" value=\"#{href}\" />"
         else
-          result.gsub! url[:url], "<a href=\"#{href}\">#{href}</a>"
+          result.gsub! url[:url], "<a href=\"#{href}\">#{href}</a><button name=\"a\" value=\"#{href}\">+</button>"
         end
       end
     end
@@ -171,6 +176,20 @@ helpers do
     status = Marshal.load redis.lindex(status_key, index)
     format_status status.attrs, index
   end
+
+  def add_to_pocket(url)
+    redis = Redis.new
+    key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
+    access_token = redis.get(key)
+    if access_token.nil?
+      session[:pocket_add_url] = url
+      redirect to('/auth/pocket')
+      return false
+    end
+    pocket = Pocket.client(:access_token => access_token)
+    pocket.add :url => url
+    true
+  end
 end
 
 before do
@@ -182,6 +201,22 @@ get '/auth/failure' do
   'Login system failure'
 end
 
+get '/auth/pocket' do
+  callback = request.base_url + '/auth/pocket/callback'
+  session[:pocket_code] = Pocket.get_code(:redirect_uri => callback)
+  authorize_url = Pocket.authorize_url(
+          :code => session[:pocket_code], :redirect_uri => callback)
+  redirect authorize_url
+end
+
+get '/auth/pocket/callback' do
+  access_token = Pocket.get_access_token(session[:pocket_code])
+  redis = Redis.new
+  key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
+  redis.set key, access_token
+  redirect to('/')
+end
+
 get '/auth/twitter/callback' do
   session[:uid] = env['omniauth.auth']['uid']
   session[:utc_offset] = env['omniauth.auth'][:extra][:raw_info][:utc_offset]
@@ -190,6 +225,12 @@ get '/auth/twitter/callback' do
 end
 
 get '/' do
+  pocket_add_url = session[:pocket_add_url]
+puts pocket_add_url
+  if !pocket_add_url.nil?
+    session[:pocket_add_url] = nil
+    add_to_pocket pocket_add_url
+  end
   haml :root, :locals => get_status
 end
 
@@ -210,6 +251,10 @@ post '/' do
   elsif !params[:t].nil?
     status = twitter().status(params[:t])
     return haml :root, :locals => format_status(status.attrs)
+  elsif !params[:a].nil?
+    if not add_to_pocket(params[:a])
+      return
+    end
   end
   haml :root, :locals => get_status(delta)
 end
