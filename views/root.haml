@@ -1,0 +1,25 @@
+!!! 5
+%html
+  %head
+    %meta{:charset => 'UTF-8'}/
+    %meta{:content => 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no',
+          :name=> 'viewport'}/
+    %title soc
+    %link{:href => 'css/style.css', :rel => 'stylesheet'}
+  %body.soc_body
+    %form{:action => '/', :method => 'post'}
+      .soc_header
+        %button{:name => 'n'} &gt;
+        %button{:name => 'f'} &gt;&gt;
+        %button{:name => 'e'} &gt;&gt;|
+        %button{:name => 'u', :class => 'soc_at'} @
+      - contexts.each do |ctx|
+        .soc_context= "#{ctx[:name]} (@#{ctx[:screen_name]}) #{ctx[:created_at]}"
+        - if ctx[:is_retweet]
+          %div retweet:
+      .soc_content!= content_html
+      .soc_footer
+        %button{:name => 'p'} &lt;
+        %button{:name => 'b'} &lt;&lt;
+        %button{:name => 's'} |&lt;&lt;
+        %i.soc_status= message

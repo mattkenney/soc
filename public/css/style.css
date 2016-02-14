@@ -1,0 +1,34 @@
+.soc_at {
+    float: right;
+}
+.soc_body {
+    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+    font-size: 16pt;
+    margin: 0;
+}
+.soc_content,.soc_context {
+    margin: 1ex;
+}
+.soc_footer, .soc_header {
+    background-color: #e1e1e1;
+    padding: 0.3ex 0 0.6ex;
+}
+.soc_footer > button, .soc_header > button {
+    background-color: #e1e1e1;
+    border: none;
+    font-weight: bold;
+}
+.soc_footer {
+    border-top: 1px solid #909090;
+    bottom: 0;
+    position: fixed;
+    width: 100%;
+}
+.soc_header {
+    border-bottom: 1px solid #909090;
+}
+.soc_status {
+    display: inline-block;
+    float: right;
+    margin-right: 2ex;
+}
