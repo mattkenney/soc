@@ -235,7 +235,6 @@ end
 
 get '/' do
   pocket_add_url = session[:pocket_add_url]
-puts pocket_add_url
   if !pocket_add_url.nil?
     session[:pocket_add_url] = nil
     add_to_pocket pocket_add_url
