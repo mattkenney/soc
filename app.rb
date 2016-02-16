@@ -25,6 +25,11 @@ require 'sinatra'
 require 'twitter'
 require 'yaml'
 
+configure :production do
+  # do not log requests to stderr, rely on nginx request log
+  set :logging, false
+end
+
 configure do
   set :haml, :escape_html => true
 
