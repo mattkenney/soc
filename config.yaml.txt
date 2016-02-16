@@ -1,0 +1,7 @@
+# supply the values below in a file named "config.yaml"
+pocket:
+  consumer_key: KEY
+session_timeout: TIMEOUT
+twitter:
+  consumer_key: KEY
+  consumer_secret: KEY

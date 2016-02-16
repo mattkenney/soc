@@ -23,32 +23,36 @@ require 'rack/session/redis'
 require 'redis'
 require 'sinatra'
 require 'twitter'
+require 'yaml'
 
 configure do
+  set :haml, :escape_html => true
+
+  set :config, YAML::load_file(File.join(__dir__, 'config.yaml'))
+
   # we'll use redis sessions instead of cookie sessions
   disable :sessions
   use Rack::Session::Redis, {
-    :expire_after => ENV.fetch('SESSION_TIMEOUT', '43200').to_i
+    :expire_after => settings.config['session_timeout'].to_i
   }
 
   # log in with Twitter
   use OmniAuth::Builder do
-    provider :twitter, ENV['CONSUMER_KEY'], ENV['CONSUMER_SECRET']
+    provider :twitter, settings.config['twitter']['consumer_key'],
+        settings.config['twitter']['consumer_secret']
   end
-
-  set :haml, :escape_html => true
 end
 
 Pocket.configure do |config|
-  config.consumer_key = ENV['POCKET_CONSUMER_KEY']
+  config.consumer_key = settings.config['pocket']['consumer_key']
 end
 
 helpers do
   def twitter()
     credentials = session[:twitter_credentials]
     Twitter::REST::Client.new do |config|
-      config.consumer_key        = ENV['CONSUMER_KEY']
-      config.consumer_secret     = ENV['CONSUMER_SECRET']
+      config.consumer_key        = settings.config['twitter']['consumer_key']
+      config.consumer_secret     = settings.config['twitter']['consumer_secret']
       config.access_token        = credentials.token
       config.access_token_secret = credentials.secret
     end
