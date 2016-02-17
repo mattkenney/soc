@@ -223,19 +223,18 @@ get '/auth/pocket/callback' do
   redis = Redis.new
   key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
   redis.set key, access_token
-  redirect to('/')
+  redirect to(settings.config.fetch('base_path', '/'))
 end
 
 get '/auth/twitter/callback' do
   session[:uid] = env['omniauth.auth']['uid']
   session[:utc_offset] = env['omniauth.auth'][:extra][:raw_info][:utc_offset]
   session[:twitter_credentials] = env['omniauth.auth']['credentials']
-  redirect to('/')
+  redirect to(settings.config.fetch('base_path', '/'))
 end
 
 get '/' do
   pocket_add_url = session[:pocket_add_url]
-puts pocket_add_url
   if !pocket_add_url.nil?
     session[:pocket_add_url] = nil
     add_to_pocket pocket_add_url
