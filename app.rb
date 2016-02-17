@@ -105,6 +105,7 @@ helpers do
         [status[:in_reply_to_screen_name], status[:in_reply_to_status_id_str]]
     end
     result = {
+      :id_str => status[:id_str],
       :contexts => contexts,
       :content_html => format_content_html(status),
       :message => message,
@@ -186,7 +187,7 @@ helpers do
     format_status status.attrs, index
   end
 
-  def add_to_pocket(url)
+  def add_to_pocket(url, tweet_id)
     redis = Redis.new
     key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
     access_token = redis.get(key)
@@ -196,7 +197,7 @@ helpers do
       return false
     end
     pocket = Pocket.client(:access_token => access_token)
-    pocket.add :url => url
+    pocket.add :url => url, :tweet_id => tweet_id
     true
   end
 end
@@ -234,12 +235,14 @@ get '/auth/twitter/callback' do
 end
 
 get '/' do
+  status = get_status
   pocket_add_url = session[:pocket_add_url]
   if !pocket_add_url.nil?
     session[:pocket_add_url] = nil
-    add_to_pocket pocket_add_url
+    add_to_pocket pocket_add_url, status[:id_str]
+    status[:message] = 'pocketed'
   end
-  haml :root, :locals => get_status
+  haml :root, :locals => status
 end
 
 post '/' do
@@ -259,10 +262,14 @@ post '/' do
   elsif !params[:t].nil?
     status = twitter().status(params[:t])
     return haml :root, :locals => format_status(status.attrs)
-  elsif !params[:a].nil?
-    if not add_to_pocket(params[:a])
+  end
+  status = get_status(delta)
+  if !params[:a].nil?
+    if add_to_pocket(params[:a], status[:id_str])
+      status[:message] = 'pocketed'
+    else
       return
     end
   end
-  haml :root, :locals => get_status(delta)
+  haml :root, :locals => status
 end
