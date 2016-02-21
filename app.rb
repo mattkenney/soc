@@ -118,7 +118,7 @@ helpers do
     if status[:entities][:urls]
       status[:entities][:urls].each do |url|
         href = CGI::escapeHTML(url[:expanded_url])
-        if /^https:\/\/twitter\.com\/[^\/]+\/status\/[0-9]+$/ =~ url[:expanded_url]
+        if /^https:\/\/twitter\.com\/[^\/]+\/status\/[0-9]+(\?|$)/ =~ url[:expanded_url]
         then
           result.gsub! url[:url], "<input name=\"t\" type=\"submit\" value=\"#{href}\" />"
         else
