@@ -211,6 +211,29 @@ get '/auth/failure' do
   'Login system failure'
 end
 
+get '/auth/info' do
+  redis = Redis.new
+  key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
+  pocket = redis.exists key
+  haml :info, :locals => { :name => session[:name], :pocket => pocket }
+end
+
+post '/auth/info' do
+  if !params[:x].nil?
+    session.clear
+  elsif !params[:p].nil?
+    redis = Redis.new
+    key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
+    if redis.exists(key)
+      redis.del key
+    else
+      redirect to('/auth/pocket')
+      return
+    end
+  end
+  redirect to(settings.config.fetch('base_path', '/'))
+end
+
 get '/auth/pocket' do
   callback = request.base_url + '/auth/pocket/callback'
   session[:pocket_code] = Pocket.get_code(:redirect_uri => callback)
@@ -229,6 +252,7 @@ end
 
 get '/auth/twitter/callback' do
   session[:uid] = env['omniauth.auth']['uid']
+  session[:name] = env['omniauth.auth'][:info][:name]
   session[:utc_offset] = env['omniauth.auth'][:extra][:raw_info][:utc_offset]
   session[:twitter_credentials] = env['omniauth.auth']['credentials']
   redirect to(settings.config.fetch('base_path', '/'))
@@ -262,6 +286,9 @@ post '/' do
   elsif !params[:t].nil?
     status = twitter().status(params[:t])
     return haml :root, :locals => format_status(status.attrs)
+  elsif !params[:u].nil?
+    redirect to('/auth/info')
+    return
   end
   status = get_status(delta)
   if !params[:a].nil?
