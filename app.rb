@@ -220,7 +220,9 @@ get '/auth/info' do
   redis = Redis.new
   key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
   pocket = redis.exists key
-  haml :info, :locals => { :name => session[:name], :pocket => pocket }
+  haml :info, :locals => { :name => session[:name], 
+                           :pocket => pocket,
+                           :base => settings.config.fetch('base_path', '/') }
 end
 
 post '/auth/info' do
