@@ -132,9 +132,16 @@ helpers do
       end
     end
     if status[:entities][:media]
-      status[:entities][:media].each do |url|
+      media = status[:entities][:media]
+      if status[:extended_entities] and status[:extended_entities][:media]
+        media = status[:extended_entities][:media]
+      end
+      media.each do |url|
         href = CGI::escapeHTML(url[:media_url_https])
-        result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_image_link\">[image]</a>"
+        html = "<a href=\"#{href}\" class=\"soc_image_link\">[image]</a>"
+        if !result.gsub! url[:url], html
+          result += ' ' + html
+        end
       end
     end
     result.gsub "\n", "<br />"
