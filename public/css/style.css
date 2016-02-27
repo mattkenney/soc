@@ -1,38 +1,65 @@
+a,a:active,a:focus,a:hover {
+  color: #090;
+  text-decoration: none;
+}
 .soc_at {
-    float: right;
+  float: right;
 }
 .soc_body {
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    margin: 0;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  margin: 0;
 }
 .soc_content,.soc_context {
-    font-size: 14pt;
-    margin: 1ex;
+  font-size: 14pt;
+  margin: 1ex;
+}
+.soc_context>a{
+  white-space: nowrap;
 }
 .soc_footer, .soc_header {
-    font-size: 16pt;
-    background-color: #e1e1e1;
-    height: 47px;
-    padding: 0 0.6ex;
+  font-size: 16pt;
+  background-color: #e1e1e1;
+  height: 47px;
+  padding: 0 0.6ex;
 }
 .soc_footer > button, .soc_header > button {
-    font-weight: bold;
-    margin-top: 1.1ex;
-    padding-bottom: 0.4ex;
-    width: 4em;
+  font-weight: bold;
+  margin-top: 1.1ex;
+  padding-bottom: 0.4ex;
+  width: 4em;
 }
 .soc_footer {
-    border-top: 1px solid #909090;
-    bottom: 0;
-    position: fixed;
-    width: 100%;
+  border-top: 1px solid #909090;
+  bottom: 0;
+  position: fixed;
+  width: 100%;
+}
+.soc_pocket {
+  margin: 0 1ex;
 }
 .soc_header {
-    border-bottom: 1px solid #909090;
+  border-bottom: 1px solid #909090;
 }
 .soc_status {
-    display: inline-block;
-    float: right;
-    font-size: 14pt;
-    margin: 1ex 2ex;
+  display: inline-block;
+  float: right;
+  font-size: 14pt;
+  margin: 1ex 2ex;
+}
+.soc_tweet_link
+{
+  background: none;
+  border: none;
+  color: #090;
+  cursor: pointer;
+  font-size: 14pt;
+  padding: 0;
+}
+.soc_tweet_link:after
+{
+  content: "]"
+}
+.soc_tweet_link:before
+{
+  content: "["
 }

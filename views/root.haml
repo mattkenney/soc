@@ -24,11 +24,12 @@
           :name=> 'viewport'}/
     / @source:https://github.com/mattkenney/soc
     %title soc
-    %link{:href => 'css/style.css', :rel => 'stylesheet'}
+    %link{:href => '../css/style.css', :rel => 'stylesheet'}
+    %script{:src => 'js/script.js'}
   %body.soc_body
     %form{:action => './', :method => 'post'}
       .soc_header
-        %button{:name => 'n'} &gt;
+        %button{:id => 'n', :name => 'n'} &gt;
         %button{:name => 'f'} &gt;&gt;
         %button{:name => 'e'} &gt;&gt;|
         %button{:name => 'u', :class => 'soc_at'} @
@@ -37,14 +38,17 @@
           - if ctx[:is_retweet]
             %b.soc_ref RT
           %a{:href => ctx[:profile]}= "#{ctx[:name]} (@#{ctx[:screen_name]})"
+          &#8211;
           %a{:href => ctx[:url]}= ctx[:created_at]
       .soc_content!= content_html
       - if in_reply_to
         .soc_context
           %b.soc_ref RE
-          %input{:name => 't', :type => 'submit', :value => in_reply_to}
+          %button{:class => 'soc_tweet_link',
+                  :name => 't',
+                  :value => in_reply_to[:url]}= "@#{in_reply_to[:screen_name]} tweet"
       .soc_footer
-        %button{:name => 'p'} &lt;
+        %button{:id => 'p', :name => 'p'} &lt;
         %button{:name => 'b'} &lt;&lt;
         %button{:name => 's'} |&lt;&lt;
-        %span.soc_status= message
+        %span{:class => 'soc_status', :id => 'status'}= message

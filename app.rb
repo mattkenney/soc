@@ -101,8 +101,12 @@ helpers do
     end
     in_reply_to = false
     if status[:in_reply_to_screen_name] and status[:in_reply_to_status_id_str]
-      in_reply_to = "https://twitter.com/%s/status/%s" %
-        [status[:in_reply_to_screen_name], status[:in_reply_to_status_id_str]]
+      in_reply_to = {
+        :url => "https://twitter.com/%s/status/%s" %
+          [status[:in_reply_to_screen_name], status[:in_reply_to_status_id_str]],
+        :screen_name => status[:in_reply_to_screen_name],
+        :id_str => status[:in_reply_to_status_id_str]
+      }
     end
     result = {
       :id_str => status[:id_str],
@@ -118,18 +122,19 @@ helpers do
     if status[:entities][:urls]
       status[:entities][:urls].each do |url|
         href = CGI::escapeHTML(url[:expanded_url])
-        if /^https:\/\/twitter\.com\/[^\/]+\/status\/[0-9]+(\?|$)/ =~ url[:expanded_url]
+        match = /^https:\/\/twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(url[:expanded_url])
+        if match
         then
-          result.gsub! url[:url], "<input name=\"t\" type=\"submit\" value=\"#{href}\" />"
+          result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">@#{match[1]} tweet</button>"
         else
-          result.gsub! url[:url], "<a href=\"#{href}\">#{href}</a><button name=\"a\" value=\"#{href}\">+</button>"
+          result.gsub! url[:url], "<a href=\"#{href}\">#{href}</a><button class=\"soc_pocket\" name=\"a\" value=\"#{href}\">+</button>"
         end
       end
     end
     if status[:entities][:media]
       status[:entities][:media].each do |url|
         href = CGI::escapeHTML(url[:media_url_https])
-        result.gsub! url[:url], "<a href=\"#{href}\">[#{href}]</a>"
+        result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_image_link\">[image]</a>"
       end
     end
     result.gsub "\n", "<br />"
