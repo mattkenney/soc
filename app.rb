@@ -127,7 +127,7 @@ helpers do
         then
           result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">@#{match[1]} tweet</button>"
         else
-          result.gsub! url[:url], "<a href=\"#{href}\">#{href}</a><button class=\"soc_pocket\" name=\"a\" value=\"#{href}\">+</button>"
+          result.gsub! url[:url], "<a href=\"#{href}\">#{href}</a><button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>"
         end
       end
     end
