@@ -122,12 +122,13 @@ helpers do
     if status[:entities][:urls]
       status[:entities][:urls].each do |url|
         href = CGI::escapeHTML(url[:expanded_url])
+        label = href.gsub('/', '/&#8203;') # zero-width-space: allows wrapping of long urls
         match = /^https:\/\/twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(url[:expanded_url])
         if match
         then
           result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">@#{match[1]} tweet</button>"
         else
-          result.gsub! url[:url], "<a href=\"#{href}\">#{href}</a><button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>"
+          result.gsub! url[:url], "<a href=\"#{href}\">#{label}</a><button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>"
         end
       end
     end
