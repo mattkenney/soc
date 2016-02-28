@@ -126,7 +126,7 @@ helpers do
         match = /^https:\/\/twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(url[:expanded_url])
         if match
         then
-          result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">@#{match[1]} tweet</button>"
+          result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[1]} tweet]</button>"
         else
           result.gsub! url[:url], "<a href=\"#{href}\">#{label}</a><button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>"
         end

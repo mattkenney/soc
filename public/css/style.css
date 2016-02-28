@@ -68,11 +68,3 @@ a,a:active,a:focus,a:hover {
   font-size: 14pt;
   padding: 0;
 }
-.soc_tweet_link:after
-{
-  content: "]"
-}
-.soc_tweet_link:before
-{
-  content: "["
-}
