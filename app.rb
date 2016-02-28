@@ -122,7 +122,7 @@ helpers do
     if status[:entities][:urls]
       status[:entities][:urls].each do |url|
         href = CGI::escapeHTML(url[:expanded_url])
-        label = href.gsub('/', '/&#8203;') # zero-width-space: allows wrapping of long urls
+        label = href.gsub(/(\/|;|\+)/, '\1&#8203;') # zero-width-space: allows wrapping of long urls
         match = /^https:\/\/twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(url[:expanded_url])
         if match
         then
