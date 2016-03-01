@@ -46,7 +46,7 @@
           %b.soc_ref RE
           %button{:class => 'soc_tweet_link',
                   :name => 't',
-                  :value => in_reply_to[:url]}= "@#{in_reply_to[:screen_name]} tweet"
+                  :value => in_reply_to[:url]}= "[@#{in_reply_to[:screen_name]} tweet]"
       .soc_footer
         %button{:id => 'p', :name => 'p'} &lt;
         %button{:name => 'b'} &lt;&lt;

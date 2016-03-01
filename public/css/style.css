@@ -53,6 +53,10 @@ a,a:active,a:focus,a:hover {
 .soc_header {
   border-bottom: 1px solid #aaa;
 }
+.soc_link
+{
+  word-wrap: break-word;
+}
 .soc_status {
   display: inline-block;
   float: right;
