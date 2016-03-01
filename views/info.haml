@@ -35,11 +35,11 @@
             %dt name
             %dd= name
           %div
-            %input{:class => 'soc_button', :name => 'x', :value => 'log out'}
+            %input{:class => 'soc_button', :name => 'x', :type => 'submit', :value => 'log out'}
           %div
             %dl
               %dt Pocket
               %dd
-                %input{:class => 'soc_button', :name => 'x',
+                %input{:class => 'soc_button', :name => 'x', :type => 'submit',
                        :value => (pocket ? 'disconnect' : 'connect')}
       .soc_footer
