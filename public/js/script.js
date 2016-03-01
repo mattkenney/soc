@@ -26,5 +26,6 @@ document.addEventListener('touchstart', start);
 document.addEventListener('touchmove', move);
 document.addEventListener('touchcancel', cancel);
 document.addEventListener('touchend', cancel);
+document.getElementById('n').focus();
 
 })();
