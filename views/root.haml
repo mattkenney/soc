@@ -28,15 +28,12 @@
     %script{:src => 'js/script.js'}
   %body.soc_body
     %form{:action => './', :method => 'post'}
-      .soc_header
-        %button{:id => 'n', :name => 'n'} &gt;
-        %button{:name => 'f'} &gt;&gt;
-        %button{:name => 'e'} &gt;&gt;|
-        %button{:name => 'u', :class => 'soc_at'} @
       - contexts.each do |ctx|
         .soc_context
           - if ctx[:is_retweet]
             %b.soc_ref RT
+          - else
+            %button{:class => 'soc_next', :name => 'n'} &gt;
           %a{:href => ctx[:profile]}= "#{ctx[:name]} (@#{ctx[:screen_name]})"
           &#8211;
           %a{:href => ctx[:url]}= ctx[:created_at]
@@ -47,6 +44,11 @@
           %button{:class => 'soc_tweet_link',
                   :name => 't',
                   :value => in_reply_to[:url]}= "[@#{in_reply_to[:screen_name]} tweet]"
+      .soc_header
+        %button{:id => 'n', :name => 'n'} &gt;
+        %button{:name => 'f'} &gt;&gt;
+        %button{:name => 'e'} &gt;&gt;|
+        %button{:name => 'u', :class => 'soc_at'} @
       .soc_footer
         %button{:id => 'p', :name => 'p'} &lt;
         %button{:name => 'b'} &lt;&lt;
