@@ -163,15 +163,23 @@ helpers do
     if index < 0
       string = redis.lindex(status_key, 0)
       if string.nil?
-        new = twitter().home_timeline :count => 200
+        begin
+          new = twitter().home_timeline :count => 200
+        rescue
+          $stderr.print "ERROR: home_timeline - " + $!.to_s + "\n"
+        end
       else
         top = Marshal.load string
         # include refetch newest cached tweet to see if we missed any
         since = top.id - 1
-        new = twitter().home_timeline :count => 200, :since_id => since
-        if top.id != new[-1].id
-          # LATER: 
+        begin
+          new = twitter().home_timeline :count => 200, :since_id => since
+        rescue
+          $stderr.print "ERROR: home_timeline since_id => " + since + " - " + $!.to_s + "\n"
         end
+        #if top.id != new[-1].id
+        #   LATER: 
+        #end
       end
       if !new.nil? and new.length > 0
         redis.del status_key
@@ -182,11 +190,19 @@ helpers do
     elsif index >= count
       string = redis.lindex(status_key, -1)
       if string.nil?
-        new = twitter().home_timeline :count => 200
+        begin
+          new = twitter().home_timeline :count => 200
+        rescue
+          $stderr.print "ERROR: home_timeline - " + $!.to_s + "\n"
+        end
       else
         bottom = Marshal.load string
         max = bottom.id
-        new = twitter().home_timeline :count => 200, :max_id => max
+        begin
+          new = twitter().home_timeline :count => 200, :max_id => max
+        rescue
+          $stderr.print "ERROR: home_timeline max_id => " + max + " - " + $!.to_s + "\n"
+        end
       end
       if !new.nil? and new.length > 0
         strings = new.map { |item| Marshal.dump item }
@@ -298,8 +314,12 @@ post '/' do
   elsif !params[:e].nil?
     delta = -Float::INFINITY
   elsif !params[:t].nil?
-    status = twitter().status(params[:t])
-    return haml :root, :locals => format_status(status.attrs)
+    begin
+      status = twitter().status(params[:t])
+      return haml :root, :locals => format_status(status.attrs)
+    rescue
+      $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
+    end
   elsif !params[:u].nil?
     redirect to('/auth/info')
     return
