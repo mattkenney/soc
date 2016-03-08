@@ -243,7 +243,7 @@ get '/auth/info' do
   redis = Redis.new
   key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
   pocket = redis.exists key
-  haml :info, :locals => { :name => session[:name], 
+  haml :info, :locals => { :name => session[:name],
                            :pocket => pocket,
                            :base => settings.config.fetch('base_path', '/') }
 end
@@ -260,6 +260,8 @@ post '/auth/info' do
       redirect to('/auth/pocket')
       return
     end
+  elsif !params[:i].nil?
+    session[:night] = !session[:night]
   end
   redirect to(settings.config.fetch('base_path', '/'))
 end

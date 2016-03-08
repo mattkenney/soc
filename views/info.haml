@@ -25,9 +25,9 @@
     / @source:https://github.com/mattkenney/soc
     %title soc
     %link{:href => "#{base}css/style.css", :rel => 'stylesheet'}
-  %body.soc_body
+  %body.soc_body{:class => ('soc_night' if session[:night])}
     %form{:action => 'info', :method => 'post'}
-      .soc_header
+      .soc_header{:class => ('soc_night' if session[:night])}
         %button &lt;
       .soc_content
         - if name
@@ -43,4 +43,4 @@
                 %input{:class => 'soc_button', :name => 'x', :type => 'submit',
                        :value => (pocket ? 'disconnect' : 'connect')}
         %input{:class => 'soc_button', :name => 'i', :type => 'submit', :value => 'night mode'}
-      .soc_footer
+      .soc_footer{:class => ('soc_night' if session[:night])}
