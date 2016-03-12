@@ -42,5 +42,7 @@
               %dd
                 %input{:class => 'soc_button', :name => 'x', :type => 'submit',
                        :value => (pocket ? 'disconnect' : 'connect')}
-        %input{:class => 'soc_button', :name => 'i', :type => 'submit', :value => 'night mode'}
+        %input{ :class => 'soc_button',
+                :name => 'i', :type => 'submit',
+                :value => (session[:night] ? 'turn off night mode' : 'turn on night mode')}
       .soc_footer{:class => ('soc_night' if session[:night])}

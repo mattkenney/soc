@@ -27,6 +27,7 @@
     %link{:href => 'css/style.css', :rel => 'stylesheet'}
   %body.soc_body{:class => ('soc_night' if session[:night])}
     %form{:action => './', :method => 'post'}
+      %input{:name => 'id', :type => 'hidden', :value => id_str}
       - contexts.each do |ctx|
         .soc_context
           - if ctx[:is_retweet]

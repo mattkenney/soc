@@ -89,6 +89,7 @@ helpers do
   end
 
   def format_status(status, message = '')
+    id_str = status[:id_str]
     contexts = []
     ctx = format_context(status)
     while true
@@ -109,7 +110,7 @@ helpers do
       }
     end
     result = {
-      :id_str => status[:id_str],
+      :id_str => id_str,
       :contexts => contexts,
       :content_html => format_content_html(status),
       :message => message,
@@ -147,18 +148,21 @@ helpers do
     result.gsub "\n", "<br />"
   end
 
-  def get_status(delta = 0)
+  def get_status(delta = 0, rel_id = nil)
     redis = Redis.new
     status_key = 'soc:uid:' + session[:uid] + ':statuses'
     count = redis.llen status_key
     index_key = 'soc:uid:' + session[:uid] + ':status_index'
     index = (redis.get index_key).to_i
-    if delta == Float::INFINITY
-      index = (index < count - 1) ? (count - 1) : count
-    elsif delta == -Float::INFINITY
-      index = (index > 0) ?  0 : -1
-    else
-      index += delta
+    id_key = 'soc:uid:' + session[:uid] + ':status_id'
+    if delta != 0 and rel_id == (redis.get id_key)
+      if delta == Float::INFINITY
+        index = (index < count - 1) ? (count - 1) : count
+      elsif delta == -Float::INFINITY
+        index = (index > 0) ?  0 : -1
+      else
+        index += delta
+      end
     end
     if index < 0
       string = redis.lindex(status_key, 0)
@@ -212,7 +216,23 @@ helpers do
     index = [0, [index, count].min].max
     redis.set index_key, index
     status = Marshal.load redis.lindex(status_key, index)
+    redis.set id_key, status.attrs[:id_str]
     format_status status.attrs, index
+  end
+
+  def get_status_by_id(tweet_id)
+    begin
+      status = twitter().status(tweet_id)
+    rescue
+      $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
+    end
+    if status
+      id_key = 'soc:uid:' + session[:uid] + ':status_id'
+      redis = Redis.new
+      redis.set id_key, status.attrs[:id_str]
+      return format_status(status.attrs)
+    end
+    return false
   end
 
   def add_to_pocket(url, tweet_id)
@@ -240,9 +260,11 @@ get '/auth/failure' do
 end
 
 get '/auth/info' do
-  redis = Redis.new
-  key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
-  pocket = redis.exists key
+  if session[:uid]
+    redis = Redis.new
+    key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
+    pocket = redis.exists key
+  end
   haml :info, :locals => { :name => session[:name],
                            :pocket => pocket,
                            :base => settings.config.fetch('base_path', '/') }
@@ -251,6 +273,8 @@ end
 post '/auth/info' do
   if !params[:x].nil?
     session.clear
+    redirect to('/auth/info')
+    return
   elsif !params[:p].nil?
     redis = Redis.new
     key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
@@ -316,19 +340,17 @@ post '/' do
   elsif !params[:e].nil?
     delta = -Float::INFINITY
   elsif !params[:t].nil?
-    begin
-      status = twitter().status(params[:t])
-      return haml :root, :locals => format_status(status.attrs)
-    rescue
-      $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
+    status = get_status_by_id(params[:t])
+    if status
+      return haml :root, :locals => status
     end
   elsif !params[:u].nil?
     redirect to('/auth/info')
     return
   end
-  status = get_status(delta)
+  status = get_status(delta, params[:id])
   if !params[:a].nil?
-    if add_to_pocket(params[:a], status[:id_str])
+    if add_to_pocket(params[:a], params[:id])
       status[:message] = 'pocketed'
     else
       return
