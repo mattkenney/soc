@@ -273,7 +273,7 @@ end
 post '/auth/info' do
   if !params[:x].nil?
     session.clear
-    redirect to('/auth/info')
+    redirect 'https://twitter.com/logout'
     return
   elsif !params[:p].nil?
     redis = Redis.new
