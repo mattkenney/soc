@@ -139,7 +139,7 @@ helpers do
       end
       media.each do |url|
         href = CGI::escapeHTML(url[:media_url_https])
-        if url[:type] == 'video'
+        if url[:type] == 'video' or url[:type] == 'animated_gif'
             html = "<a href=\"#{href}\" class=\"soc_video_link\">[video]</a>"
         else
             html = "<a href=\"#{href}\" class=\"soc_image_link\">[image]</a>"
