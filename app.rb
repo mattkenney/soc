@@ -17,13 +17,32 @@
 # along with Soc.  If not, see <http://www.gnu.org/licenses/>.
 #
 require 'haml'
+require 'net/http'
+require 'nokogiri'
 require 'omniauth-twitter'
 require 'pocket-ruby'
 require 'rack/session/redis'
 require 'redis'
 require 'sinatra'
 require 'twitter'
+require 'uri'
 require 'yaml'
+
+def fetch(uri_str, limit = 10)
+  raise ArgumentError, 'too many HTTP redirects' if limit == 0
+
+  response = Net::HTTP.get_response(URI(uri_str))
+
+  case response
+  when Net::HTTPSuccess then
+    response
+  when Net::HTTPRedirection then
+    location = response['location']
+    fetch(location, limit - 1)
+  else
+    response.value
+  end
+end
 
 configure :production do
   # do not log requests to stderr, rely on nginx request log
@@ -60,6 +79,26 @@ helpers do
       config.consumer_secret     = settings.config['twitter']['consumer_secret']
       config.access_token        = credentials.token
       config.access_token_secret = credentials.secret
+    end
+  end
+
+  def follow(status, follow_url)
+    if status[:entities][:urls]
+      status[:entities][:urls].each do |url|
+        if url[:expanded_url] == follow_url
+          begin
+            response = fetch(follow_url)
+            html = response.body
+            doc = Nokogiri::HTML(html)
+            titles = doc.xpath('//title')
+            title = titles[0]
+            url[:title] = title.content() if title
+            url[:final_url] = response.uri.to_s
+          rescue StandardError => e
+            $stderr.print "ERROR: cannot load " + follow_url + " " + e.to_s + "\n"
+          end
+        end
+      end
     end
   end
 
@@ -123,12 +162,21 @@ helpers do
     if status[:entities][:urls]
       status[:entities][:urls].each do |url|
         href = CGI::escapeHTML(url[:expanded_url])
-        match = /^https:\/\/twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(url[:expanded_url])
+        match = /^https:\/\/(((m)|(www))\.)?twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(url[:expanded_url])
         if match
         then
-          result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[1]} tweet]</button>"
+          result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[5]} tweet]</button>"
         else
-          result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_link\">#{href}</a><button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>"
+          if url[:final_url]
+            href = CGI::escapeHTML(url[:final_url])
+            result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
+                  "<button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>" +
+                  "[#{url[:title]}]"
+          else
+            result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
+                  "<button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>" +
+                  "<button class=\"soc_button\" name=\"i\" value=\"#{href}\">?</button>"
+          end
         end
       end
     end
@@ -224,7 +272,7 @@ helpers do
     format_status status.attrs, index
   end
 
-  def get_status_by_id(tweet_id)
+  def get_status_by_id(tweet_id, follow_url = nil)
     begin
       status = twitter().status(tweet_id)
     rescue
@@ -234,6 +282,7 @@ helpers do
       id_key = 'soc:uid:' + session[:uid] + ':status_id'
       redis = Redis.new
       redis.set id_key, status.attrs[:id_str]
+      follow(status.attrs, follow_url) if follow_url
       return format_status(status.attrs)
     end
     return false
@@ -345,6 +394,11 @@ post '/' do
     delta = -Float::INFINITY
   elsif !params[:t].nil?
     status = get_status_by_id(params[:t])
+    if status
+      return haml :root, :locals => status
+    end
+  elsif !params[:i].nil?
+    status = get_status_by_id(params[:id], params[:i])
     if status
       return haml :root, :locals => status
     end
