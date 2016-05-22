@@ -83,6 +83,11 @@ helpers do
   end
 
   def follow(status, follow_url)
+    while true
+      retweet = status[:retweeted_status]
+      break if not retweet
+      status = retweet
+    end
     if status[:entities][:urls]
       status[:entities][:urls].each do |url|
         if url[:expanded_url] == follow_url
@@ -92,7 +97,7 @@ helpers do
             doc = Nokogiri::HTML(html)
             titles = doc.xpath('//title')
             title = titles[0]
-            url[:title] = title.content() if title
+            url[:title] = title.content.strip if title
             url[:final_url] = response.uri.to_s
           rescue StandardError => e
             $stderr.print "ERROR: cannot load " + follow_url + " " + e.to_s + "\n"
