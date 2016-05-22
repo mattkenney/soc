@@ -97,8 +97,8 @@ helpers do
             doc = Nokogiri::HTML(html)
             titles = doc.xpath('//title')
             title = titles[0]
-            url[:title] = title.content.strip if title
-            url[:final_url] = response.uri.to_s
+            url[:title] = title ? title.content.strip : '?'
+            url[:expanded_url] = response.uri.to_s
           rescue StandardError => e
             $stderr.print "ERROR: cannot load " + follow_url + " " + e.to_s + "\n"
           end
@@ -172,8 +172,7 @@ helpers do
         then
           result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[5]} tweet]</button>"
         else
-          if url[:final_url]
-            href = CGI::escapeHTML(url[:final_url])
+          if url[:title]
             result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
                   "<button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>" +
                   "[#{url[:title]}]"
