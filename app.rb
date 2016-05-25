@@ -17,6 +17,7 @@
 # along with Soc.  If not, see <http://www.gnu.org/licenses/>.
 #
 require 'haml'
+require 'http/cookie'
 require 'net/http'
 require 'nokogiri'
 require 'omniauth-twitter'
@@ -28,17 +29,29 @@ require 'twitter'
 require 'uri'
 require 'yaml'
 
-def fetch(uri_str, limit = 10)
+def fetch(uri_str, limit = 10, jar = nil)
   raise ArgumentError, 'too many HTTP redirects' if limit == 0
 
-  response = Net::HTTP.get_response(URI(uri_str))
+  cookie = HTTP::Cookie.cookie_value(jar.cookies(uri_str)) if jar
+  uri = URI(uri_str)
+  request = Net::HTTP::Get.new uri
+  request['Cookie'] = cookie if cookie
+  response = Net::HTTP.new(uri.host, uri.port).start do |http|
+    http.request request
+  end
+  headers = response.get_fields('Set-Cookie') if jar
+  if headers
+    headers.each { |value|
+      jar.parse(value, uri)
+    }
+  end
 
   case response
   when Net::HTTPSuccess then
     response
   when Net::HTTPRedirection then
     location = response['location']
-    fetch(location, limit - 1)
+    fetch(location, limit - 1, jar)
   else
     response.value
   end
@@ -92,7 +105,8 @@ helpers do
       status[:entities][:urls].each do |url|
         if url[:expanded_url] == follow_url
           begin
-            response = fetch(follow_url)
+            jar = HTTP::CookieJar.new
+            response = fetch(follow_url, 10, jar)
             html = response.body
             doc = Nokogiri::HTML(html)
             titles = doc.xpath('//title')

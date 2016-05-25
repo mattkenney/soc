@@ -1,6 +1,7 @@
 source 'https://rubygems.org'
 
 gem 'haml'
+gem 'http-cookie'
 gem 'nokogiri'
 gem 'omniauth-twitter'
 gem 'pocket-ruby'

@@ -82,6 +82,7 @@ PLATFORMS
 
 DEPENDENCIES
   haml
+  http-cookie
   nokogiri
   omniauth-twitter
   pocket-ruby
