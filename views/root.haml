@@ -24,6 +24,15 @@
           :name=> 'viewport'}/
     / @source:https://github.com/mattkenney/soc
     %title soc
+    %meta{:content => 'yes', :name => 'mobile-web-app-capable'}
+    %link{:href => 'images/ico/icon-57.png', :rel => 'apple-touch-icon-precomposed'}
+    %link{:href => 'images/ico/icon-72.png', :rel => 'apple-touch-icon-precomposed',
+          :sizes => '72x72'}
+    %link{:href => 'images/ico/icon-114.png', :rel => 'apple-touch-icon-precomposed',
+          :sizes => '114x114'}
+    %link{:href => 'images/ico/icon-144.png', :rel => 'apple-touch-icon-precomposed',
+          :sizes => '144x144'}
+    %link{:href => 'images/ico/icon-196.png', :rel => 'shortcut icon', :sizes => '196x196'}
     %link{:href => 'css/style.css', :rel => 'stylesheet'}
   %body.soc_body{:class => ('soc_night' if session[:night])}
     %form{:action => './', :method => 'post'}
