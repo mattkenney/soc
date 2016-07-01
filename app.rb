@@ -107,12 +107,16 @@ helpers do
           begin
             jar = HTTP::CookieJar.new
             response = fetch(follow_url, 10, jar)
+            url[:expanded_url] = response.uri.to_s
+          rescue StandardError => e
+            $stderr.print "ERROR: cannot open " + follow_url + " " + e.to_s + "\n"
+          end
+          begin
             html = response.body
             doc = Nokogiri::HTML(html)
             titles = doc.xpath('//title')
             title = titles[0]
             url[:title] = title ? title.content.strip : '?'
-            url[:expanded_url] = response.uri.to_s
           rescue StandardError => e
             $stderr.print "ERROR: cannot load " + follow_url + " " + e.to_s + "\n"
           end
