@@ -31,12 +31,18 @@ require 'yaml'
 
 def fetch(uri_str, limit = 10, jar = nil)
   raise ArgumentError, 'too many HTTP redirects' if limit == 0
+  $stderr.print "INFO: fetching " + uri_str + "\n"
 
   cookie = HTTP::Cookie.cookie_value(jar.cookies(uri_str)) if jar
   uri = URI(uri_str)
   request = Net::HTTP::Get.new uri
+  request['Accept'] = '*/*'
   request['Cookie'] = cookie if cookie
-  response = Net::HTTP.new(uri.host, uri.port).start do |http|
+  request['Host'] = uri.host
+  request['User-Agent'] = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:40.0) Gecko/20100101 Firefox/40.0'
+  client = Net::HTTP.new(uri.host, uri.port)
+  client.use_ssl = (uri.scheme == 'https')
+  response = client.start do |http|
     http.request request
   end
   headers = response.get_fields('Set-Cookie') if jar
@@ -181,7 +187,7 @@ helpers do
   end
 
   def format_content_html(status)
-    result = status[:text]
+    result = status[:full_text]
     if status[:entities][:urls]
       status[:entities][:urls].each do |url|
         href = CGI::escapeHTML(url[:expanded_url])
@@ -242,7 +248,7 @@ helpers do
       string = redis.lindex(status_key, 0)
       if string.nil?
         begin
-          new = twitter().home_timeline :count => 200
+          new = twitter().home_timeline :count => 200, :tweet_mode => 'extended'
         rescue
           $stderr.print "ERROR: home_timeline - " + $!.to_s + "\n"
         end
@@ -251,7 +257,7 @@ helpers do
         # include refetch newest cached tweet to see if we missed any
         since = top.id - 1
         begin
-          new = twitter().home_timeline :count => 200, :since_id => since
+          new = twitter().home_timeline :count => 200, :tweet_mode => 'extended', :since_id => since
         rescue
           $stderr.print "ERROR: home_timeline since_id => " + since + " - " + $!.to_s + "\n"
         end
@@ -269,7 +275,7 @@ helpers do
       string = redis.lindex(status_key, -1)
       if string.nil?
         begin
-          new = twitter().home_timeline :count => 200
+          new = twitter().home_timeline :count => 200, :tweet_mode => 'extended'
         rescue
           $stderr.print "ERROR: home_timeline - " + $!.to_s + "\n"
         end
@@ -277,7 +283,7 @@ helpers do
         bottom = Marshal.load string
         max = bottom.id
         begin
-          new = twitter().home_timeline :count => 200, :max_id => max
+          new = twitter().home_timeline :count => 200, :tweet_mode => 'extended', :max_id => max
         rescue
           $stderr.print "ERROR: home_timeline max_id => " + max + " - " + $!.to_s + "\n"
         end
@@ -296,7 +302,7 @@ helpers do
 
   def get_status_by_id(tweet_id, follow_url = nil)
     begin
-      status = twitter().status(tweet_id)
+      status = twitter().status tweet_id, :tweet_mode => 'extended'
     rescue
       $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
     end
