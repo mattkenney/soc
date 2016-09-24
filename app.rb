@@ -186,46 +186,81 @@ helpers do
     }
   end
 
-  def format_content_html(status)
-    result = status[:full_text]
+  def format_urls(status)
+    result = {}
     if status[:entities][:urls]
-      status[:entities][:urls].each do |url|
-        href = CGI::escapeHTML(url[:expanded_url])
-        match = /^https:\/\/(((m)|(www))\.)?twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(url[:expanded_url])
+      status[:entities][:urls].each do |entity|
+        href = CGI::escapeHTML(entity[:expanded_url])
+        html = href
+        match = /^https:\/\/(((m)|(www))\.)?twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(entity[:expanded_url])
         if match
         then
-          result.gsub! url[:url], "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[5]} tweet]</button>"
+          html = "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[5]} tweet]</button>"
         else
-          if url[:title]
-            result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
+          if entity[:title]
+            html = "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
                   "<button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>" +
-                  "[#{url[:title]}]"
+                  "[#{entity[:title]}]"
           else
-            result.gsub! url[:url], "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
+            html = "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
                   "<button class=\"soc_button\" name=\"a\" value=\"#{href}\">+</button>" +
                   "<button class=\"soc_button\" name=\"i\" value=\"#{href}\">?</button>"
           end
         end
+        entity[:html] = html
+        result[entity[:indices][0]] = entity
       end
     end
+    result
+  end
+
+  def format_media(status)
+    result = {}
     if status[:entities][:media]
       media = status[:entities][:media]
       if status[:extended_entities] and status[:extended_entities][:media]
         media = status[:extended_entities][:media]
       end
-      media.each do |url|
-        href = CGI::escapeHTML(url[:media_url_https])
-        if url[:type] == 'video' or url[:type] == 'animated_gif'
+      media.each do |entity|
+        href = CGI::escapeHTML(entity[:media_url_https])
+        html = href
+        if entity[:type] == 'video' or entity[:type] == 'animated_gif'
             html = "<a href=\"#{href}\" class=\"soc_video_link\">[video]</a>"
         else
             html = "<a href=\"#{href}\" class=\"soc_image_link\">[image]</a>"
         end
-        if !result.gsub! url[:url], html
-          result += ' ' + html
-        end
+        entity[:html] = html
+        result[entity[:indices][0]] = entity
       end
     end
-    result.gsub "\n", "<br />"
+    result
+  end
+
+  def format_mentions(status)
+    result = {}
+    if status[:entities][:user_mentions]
+      status[:entities][:user_mentions].each do |entity|
+        entity[:html] =
+          "<a href=\"https://twitter.com/#{CGI::escapeHTML(entity[:screen_name])}\"" +
+          " title=\"#{CGI::escapeHTML(entity[:name])}\">" +
+          "@#{CGI::escapeHTML(CGI::escapeHTML(entity[:screen_name]))}</a>"
+        result[entity[:indices][0]] = entity
+      end
+    end
+    result
+  end
+
+  def format_content_html(status)
+    result = status[:full_text]
+    entities = format_urls(status)
+    entities.update format_media(status)
+    entities.update format_mentions(status)
+    entities.sort.reverse!.each do |pair|
+      entity = pair[1]
+      result.slice!(entity[:indices][0], entity[:indices][1] - entity[:indices][0])
+      result.insert(entity[:indices][0], entity[:html])
+    end
+    result
   end
 
   def get_status(delta = 0, rel_id = nil)
