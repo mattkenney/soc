@@ -208,7 +208,10 @@ helpers do
           end
         end
         entity[:html] = html
-        result[entity[:indices][0]] = entity
+        if not result.key?(entity[:indices][0])
+          result[entity[:indices][0]] = []
+        end
+        result[entity[:indices][0]].push(entity)
       end
     end
     result
@@ -230,7 +233,10 @@ helpers do
             html = "<a href=\"#{href}\" class=\"soc_image_link\">[image]</a>"
         end
         entity[:html] = html
-        result[entity[:indices][0]] = entity
+        if not result.key?(entity[:indices][0])
+          result[entity[:indices][0]] = []
+        end
+        result[entity[:indices][0]].push(entity)
       end
     end
     result
@@ -244,7 +250,10 @@ helpers do
           "<a href=\"https://twitter.com/#{CGI::escapeHTML(entity[:screen_name])}\"" +
           " title=\"#{CGI::escapeHTML(entity[:name])}\">" +
           "@#{CGI::escapeHTML(CGI::escapeHTML(entity[:screen_name]))}</a>"
-        result[entity[:indices][0]] = entity
+        if not result.key?(entity[:indices][0])
+          result[entity[:indices][0]] = []
+        end
+        result[entity[:indices][0]].push(entity)
       end
     end
     result
@@ -256,9 +265,11 @@ helpers do
     entities.update format_media(status)
     entities.update format_mentions(status)
     entities.sort.reverse!.each do |pair|
-      entity = pair[1]
-      result.slice!(entity[:indices][0], entity[:indices][1] - entity[:indices][0])
-      result.insert(entity[:indices][0], entity[:html])
+      edits = pair[1]
+      result.slice!(edits[0][:indices][0], edits[0][:indices][1] - edits[0][:indices][0])
+      edits.reverse!.each do |entity|
+        result.insert(entity[:indices][0], entity[:html])
+      end
     end
     result
   end
