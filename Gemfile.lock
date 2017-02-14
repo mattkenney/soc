@@ -46,6 +46,7 @@ GEM
       faraday_middleware (~> 0.9)
       hashie (>= 0.4.0)
       multi_json (~> 1.0, >= 1.0.3)
+    puma (3.7.0)
     rack (1.6.4)
     rack-protection (1.5.3)
       rack
@@ -86,7 +87,11 @@ DEPENDENCIES
   nokogiri
   omniauth-twitter
   pocket-ruby
+  puma
   redis
   redis-rack
   sinatra
   twitter
+
+BUNDLED WITH
+   1.11.2

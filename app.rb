@@ -343,6 +343,7 @@ helpers do
     redis.set index_key, index
     status = Marshal.load redis.lindex(status_key, index)
     redis.set id_key, status.attrs[:id_str]
+    redis.disconnect!
     format_status status.attrs, index
   end
 
@@ -356,6 +357,7 @@ helpers do
       id_key = 'soc:uid:' + session[:uid] + ':status_id'
       redis = Redis.new
       redis.set id_key, status.attrs[:id_str]
+      redis.disconnect!
       follow(status.attrs, follow_url) if follow_url
       return format_status(status.attrs)
     end
@@ -363,9 +365,10 @@ helpers do
   end
 
   def add_to_pocket(url, tweet_id)
-    redis = Redis.new
     key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
+    redis = Redis.new
     access_token = redis.get(key)
+    redis.disconnect!
     if access_token.nil?
       session[:pocket_add_url] = url
       redirect to('/auth/pocket')
@@ -388,9 +391,10 @@ end
 
 get '/auth/info' do
   if session[:uid]
-    redis = Redis.new
     key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
+    redis = Redis.new
     pocket = redis.exists key
+    redis.disconnect!
   end
   haml :info, :locals => { :name => session[:name],
                            :pocket => pocket,
@@ -407,7 +411,9 @@ post '/auth/info' do
     key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
     if redis.exists(key)
       redis.del key
+      redis.disconnect!
     else
+      redis.disconnect!
       redirect to('/auth/pocket')
       return
     end
@@ -430,6 +436,7 @@ get '/auth/pocket/callback' do
   redis = Redis.new
   key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
   redis.set key, access_token
+  redis.disconnect!
   redirect to(settings.config.fetch('base_path', '/'))
 end
 
