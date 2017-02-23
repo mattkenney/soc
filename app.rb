@@ -271,7 +271,7 @@ helpers do
         result.insert(entity[:indices][0], entity[:html])
       end
     end
-    result
+    result.gsub("\n", "<br />")
   end
 
   def get_status(delta = 0, rel_id = nil)
