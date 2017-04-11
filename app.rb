@@ -146,6 +146,7 @@ helpers do
 
   def format_context(status)
     {
+      :id_str => status[:id_str],
       :name => status[:user][:name],
       :screen_name => status[:user][:screen_name],
       :created_at => format_time(status[:created_at]),
@@ -192,10 +193,10 @@ helpers do
       status[:entities][:urls].each do |entity|
         href = CGI::escapeHTML(entity[:expanded_url])
         html = href
-        match = /^https:\/\/(((m)|(www))\.)?twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(entity[:expanded_url])
+        match = /^https:\/\/((m|mobile|www)\.)?twitter\.com\/([^\/]+)\/status\/[0-9]+(\?|$)/.match(entity[:expanded_url])
         if match
         then
-          html = "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[5]} tweet]</button>"
+          html = "<button class=\"soc_tweet_link\" name=\"t\" value=\"#{href}\">[@#{match[3]} tweet]</button>"
         else
           if entity[:title]
             html = "<a href=\"#{href}\" class=\"soc_link\">#{href}</a>" +
@@ -364,6 +365,20 @@ helpers do
     return false
   end
 
+  def get_status_by_user(user_id, since_id)
+    begin
+      statuses = twitter().user_timeline user_id, :since_id => since_id,
+            :count => 1, :exclude_replies => false, :tweet_mode => 'extended'
+      status = statuses[0] if statuses.length > 0
+    rescue
+      $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
+    end
+    if status
+      return format_status(status.attrs)
+    end
+    return false
+  end
+
   def add_to_pocket(url, tweet_id)
     key = 'soc:uid:' + session[:uid] + ':pocket_access_token'
     redis = Redis.new
@@ -480,6 +495,11 @@ post '/' do
     end
   elsif !params[:i].nil?
     status = get_status_by_id(params[:id], params[:i])
+    if status
+      return haml :root, :locals => status
+    end
+  elsif !params[:h].nil?
+    status = get_status_by_user(params[:uid], params[:tid])
     if status
       return haml :root, :locals => status
     end
