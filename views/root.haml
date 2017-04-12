@@ -49,7 +49,7 @@
           - if ctx == contexts[-1]
             %input{:name => 'uid', :type => 'hidden', :value => ctx[:screen_name]}
             %input{:name => 'tid', :type => 'hidden', :value => ctx[:id_str]}
-            %button{:class => 'soc_button', :name => 'h'} =
+            %button{:class => 'soc_button', :name => 'h'} &gt;
       .soc_content!= content_html
       - if in_reply_to
         .soc_context

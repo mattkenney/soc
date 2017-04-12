@@ -368,8 +368,8 @@ helpers do
   def get_status_by_user(user_id, since_id)
     begin
       statuses = twitter().user_timeline user_id, :since_id => since_id,
-            :count => 1, :exclude_replies => false, :tweet_mode => 'extended'
-      status = statuses[0] if statuses.length > 0
+            :count => 200, :tweet_mode => 'extended'
+      status = statuses[-1] if statuses.length > 0
     rescue
       $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
     end
