@@ -352,7 +352,8 @@ helpers do
     begin
       status = twitter().status tweet_id, :tweet_mode => 'extended'
     rescue
-      $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
+      $stderr.print "ERROR: get_status_by_id(" +
+            tweet_id + ") - " + $!.to_s + "\n"
     end
     if status
       id_key = 'soc:uid:' + session[:uid] + ':status_id'
@@ -365,13 +366,29 @@ helpers do
     return false
   end
 
-  def get_status_by_user(user_id, since_id)
+  def get_status_next(user_id, ref_id)
     begin
-      statuses = twitter().user_timeline user_id, :since_id => since_id,
+      statuses = twitter().user_timeline user_id, :since_id => ref_id,
             :count => 200, :tweet_mode => 'extended'
       status = statuses[-1] if statuses.length > 0
     rescue
-      $stderr.print "ERROR: status(" + params[:t] + ") - " + $!.to_s + "\n"
+      $stderr.print "ERROR: get_status_next(" +
+            user_id + ", " + ref_id + ") - " + $!.to_s + "\n"
+    end
+    if status
+      return format_status(status.attrs)
+    end
+    return false
+  end
+
+  def get_status_prev(user_id, ref_id)
+    begin
+      statuses = twitter().user_timeline user_id, :max_id => ref_id,
+            :count => 2, :tweet_mode => 'extended'
+      status = statuses[-1] if statuses.length > 0
+    rescue
+      $stderr.print "ERROR: get_status_prev(" +
+            user_id + ", " + ref_id + ") - " + $!.to_s + "\n"
     end
     if status
       return format_status(status.attrs)
@@ -499,7 +516,14 @@ post '/' do
       return haml :root, :locals => status
     end
   elsif !params[:h].nil?
-    status = get_status_by_user(params[:uid], params[:tid])
+    user_id, ref_id = params[:h].split('/')
+    status = get_status_prev(user_id, ref_id)
+    if status
+      return haml :root, :locals => status
+    end
+  elsif !params[:l].nil?
+    user_id, ref_id = params[:l].split('/')
+    status = get_status_next(user_id, ref_id)
     if status
       return haml :root, :locals => status
     end
