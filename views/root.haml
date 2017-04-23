@@ -45,7 +45,7 @@
             %button{:class => 'soc_next', :name => 'n'} &gt;
           %a{:href => ctx[:profile]}= "#{ctx[:name]} (@#{ctx[:screen_name]})"
           &#8211;
-          .soc_date
+          %span.soc_date
             %button{:class => 'soc_button', :name => 'h',
                 :value => (ctx[:screen_name] + '/' + ctx[:id_str])} &lt;
             %a{:href => ctx[:url]}= ctx[:created_at]
