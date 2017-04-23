@@ -28,7 +28,8 @@ a, a:active, a:focus, a:hover {
   line-height: 1.5;
   margin: 1ex;
 }
-.soc_context > a {
+.soc_date {
+  display: inline-block;
   white-space: nowrap;
 }
 .soc_footer, .soc_header {

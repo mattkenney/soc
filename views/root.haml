@@ -45,11 +45,12 @@
             %button{:class => 'soc_next', :name => 'n'} &gt;
           %a{:href => ctx[:profile]}= "#{ctx[:name]} (@#{ctx[:screen_name]})"
           &#8211;
-          %button{:class => 'soc_button', :name => 'h',
-              :value => (ctx[:screen_name] + '/' + ctx[:id_str])} &lt;
-          %a{:href => ctx[:url]}= ctx[:created_at]
-          %button{:class => 'soc_button', :name => 'l',
-              :value => (ctx[:screen_name] + '/' + ctx[:id_str])} &gt;
+          .soc_date
+            %button{:class => 'soc_button', :name => 'h',
+                :value => (ctx[:screen_name] + '/' + ctx[:id_str])} &lt;
+            %a{:href => ctx[:url]}= ctx[:created_at]
+            %button{:class => 'soc_button', :name => 'l',
+                :value => (ctx[:screen_name] + '/' + ctx[:id_str])} &gt;
       .soc_content!= content_html
       - if in_reply_to
         .soc_context
