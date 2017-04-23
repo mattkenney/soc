@@ -229,7 +229,7 @@ helpers do
         href = CGI::escapeHTML(entity[:media_url_https])
         html = href
         if entity[:type] == 'video' or entity[:type] == 'animated_gif'
-            html = "<a href=\"#{href}\" class=\"soc_video_link\">[video]</a>"
+            html = format_video(entity)
         else
             html = "<a href=\"#{href}\" class=\"soc_image_link\">[image]</a>"
         end
@@ -241,6 +241,20 @@ helpers do
       end
     end
     result
+  end
+
+  def format_video(entity)
+    variants = entity[:video_info][:variants].select {|elem| elem[:bitrate]}
+    variants.sort! {|left, right| left[:bitrate] <=> right[:bitrate]}
+    result = ''
+    variants.each_with_index do |variant, n|
+      if n > 0
+        result += "</a>"
+      end
+      result += "<a href=\"#{variant[:url]}\" class=\"soc_video_link\">"
+      result += (n == 0) ? "[video" : "~"
+    end
+    result + "]</a>"
   end
 
   def format_mentions(status)
