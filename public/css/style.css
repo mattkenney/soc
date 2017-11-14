@@ -23,6 +23,9 @@ a, a:active, a:focus, a:hover {
   height: 3.5ex;
   margin: 0 1ex;
 }
+.soc_content {
+  white-space: pre;
+}
 .soc_content, .soc_context {
   font-size: 14pt;
   line-height: 1.5;
