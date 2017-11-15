@@ -24,7 +24,7 @@ a, a:active, a:focus, a:hover {
   margin: 0 1ex;
 }
 .soc_content {
-  white-space: pre;
+  white-space: pre-wrap;
 }
 .soc_content, .soc_context {
   font-size: 14pt;
