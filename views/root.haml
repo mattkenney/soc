@@ -43,7 +43,7 @@
             %b.soc_ref RT
           - else
             %button{:class => 'soc_next', :name => 'n'} &gt;
-          %a{:href => ctx[:profile]}= "#{ctx[:name]} (@#{ctx[:screen_name]})"
+          %a{:href => ctx[:profile]}= "@#{ctx[:screen_name]} (#{ctx[:name]})"
           &#8211;
           %span.soc_date
             %button{:class => 'soc_button', :name => 'h',
