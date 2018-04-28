@@ -67,5 +67,6 @@
         %button{:id => 'p', :name => 'p'} &lt;
         %button{:name => 'b'} &lt;&lt;
         %button{:name => 's'} |&lt;&lt;
+        %button{:name => (favorited ? 'x' : 'v')} #{favorited ? '-' : '+'}
         %span{:class => 'soc_status', :id => 'status'}= message
     %script{:src => 'js/script.js'}

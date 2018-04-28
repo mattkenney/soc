@@ -164,6 +164,7 @@ helpers do
     while true
       contexts << ctx
       retweet = status[:retweeted_status]
+      favorited = status[:favorited]
       break if not retweet
       status = retweet
       ctx = format_context(status)
@@ -182,6 +183,7 @@ helpers do
       :id_str => id_str,
       :contexts => contexts,
       :content_html => format_content_html(status),
+      :favorited => favorited,
       :message => message,
       :in_reply_to => in_reply_to
     }
@@ -289,7 +291,7 @@ helpers do
     result.gsub("\n", "<br />")
   end
 
-  def get_status(delta = 0, rel_id = nil)
+  def get_status(delta = 0, rel_id = nil, replace = nil)
     redis = Redis.new
     status_key = 'soc:uid:' + session[:uid] + ':statuses'
     count = redis.llen status_key
@@ -356,7 +358,12 @@ helpers do
     end
     index = [0, [index, count].min].max
     redis.set index_key, index
-    status = Marshal.load redis.lindex(status_key, index)
+    if replace.nil?
+      status = Marshal.load redis.lindex(status_key, index)
+    else
+      status = replace
+      redis.lset(status_key, index, Marshal.dump(status))
+    end
     redis.set id_key, status.attrs[:id_str]
     redis.disconnect!
     format_status status.attrs, index
@@ -507,6 +514,7 @@ end
 
 post '/' do
   delta = 0
+  replace = nil
   if !params[:p].nil?
     delta = 1
   elsif !params[:n].nil?
@@ -529,6 +537,12 @@ post '/' do
     if status
       return haml :root, :locals => status
     end
+  elsif !params[:v].nil?
+    twitter().favorite params[:id]
+    replace = twitter().status params[:id], :tweet_mode => 'extended'
+  elsif !params[:x].nil?
+    twitter().unfavorite params[:id]
+    replace = twitter().status params[:id], :tweet_mode => 'extended'
   elsif !params[:h].nil?
     user_id, ref_id = params[:h].split('/')
     status = get_status_prev(user_id, ref_id)
@@ -545,7 +559,7 @@ post '/' do
     redirect to('/auth/info')
     return
   end
-  status = get_status(delta, params[:id])
+  status = get_status(delta, params[:id], replace)
   if !params[:a].nil?
     if add_to_pocket(params[:a], params[:id])
       status[:message] = 'pocketed'
