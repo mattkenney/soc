@@ -63,6 +63,8 @@ def fetch(uri_str, limit = 10, jar = nil)
   end
 end
 
+set :bind, '127.0.0.1'
+
 configure :production do
   # do not log requests to stderr, rely on nginx request log
   set :logging, false
