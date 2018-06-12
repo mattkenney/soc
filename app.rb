@@ -136,9 +136,17 @@ helpers do
 
   def format_time(time_string)
     dt = DateTime.parse(time_string)
-    tz = TZInfo::Timezone.get(session[:timezone])
-    lt = tz.utc_to_local(dt)
-    lt.strftime('%l:%M:%S %p %-m/%-d/%Y')
+    timezone = session[:timezone]
+    if timezone.nil? or timezone.empty?
+        timezone = 'America/New_York'
+    end
+    begin
+        tz = TZInfo::Timezone.get(timezone)
+        dt = tz.utc_to_local(dt)
+    rescue StandardError => e
+        $stderr.print "ERROR: tz? " + session[:timezone].to_s + " " + e.to_s + "\n"
+    end
+    dt.strftime('%l:%M:%S %p %-m/%-d/%Y')
   end
 
   def format_context(status)
@@ -440,9 +448,6 @@ helpers do
       redis.set timezone_key, timezone
     end
     redis.disconnect!
-    if timezone.nil? or timezone.empty?
-        timezone = 'America/New_York'
-    end
     session[:timezone] = timezone
   end
 end
@@ -516,6 +521,7 @@ get '/auth/twitter/callback' do
 end
 
 get '/' do
+  update_timezone nil
   status = get_status
   pocket_add_url = session[:pocket_add_url]
   if !pocket_add_url.nil?
