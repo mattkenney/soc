@@ -36,6 +36,7 @@
     %link{:href => 'css/style.css', :rel => 'stylesheet'}
   %body.soc_body{:class => ('soc_night' if session[:night])}
     %form{:action => './', :method => 'post'}
+      %input{:id => 'tz', :name => 'z', :type => 'hidden', :value => ''}
       %input{:name => 'id', :type => 'hidden', :value => id_str}
       - contexts.each do |ctx|
         .soc_context

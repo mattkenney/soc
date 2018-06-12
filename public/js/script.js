@@ -28,4 +28,6 @@ document.addEventListener('touchcancel', cancel);
 document.addEventListener('touchend', cancel);
 document.getElementById('n').focus();
 
+document.getElementById('tz').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
 })();

@@ -79,6 +79,8 @@ GEM
       multipart-post (~> 2.0)
       naught (~> 1.0)
       simple_oauth (~> 0.3.0)
+    tzinfo (1.2.5)
+      thread_safe (~> 0.1)
     unf (0.1.4)
       unf_ext
     unf_ext (0.0.7.5)
@@ -97,6 +99,7 @@ DEPENDENCIES
   redis-rack
   sinatra
   twitter
+  tzinfo
 
 BUNDLED WITH
    1.11.2

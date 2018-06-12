@@ -28,6 +28,7 @@ require 'sinatra'
 require 'twitter'
 require 'uri'
 require 'yaml'
+require 'tzinfo'
 
 def fetch(uri_str, limit = 10, jar = nil)
   raise ArgumentError, 'too many HTTP redirects' if limit == 0
@@ -135,15 +136,9 @@ helpers do
 
   def format_time(time_string)
     dt = DateTime.parse(time_string)
-    offset = session[:utc_offset]
-    if offset.nil?
-      offset = 0
-    end
-    zone = "%+03d:%02d" % [ offset / 3600, offset % 3600]
-    t = dt.to_time.localtime(zone)
-    s = t.strftime('%FT%T')
-    dt = DateTime.parse(s)
-    dt.strftime('%l:%M:%S %p %-m/%-d/%Y')
+    tz = TZInfo::Timezone.get(session[:timezone])
+    lt = tz.utc_to_local(dt)
+    lt.strftime('%l:%M:%S %p %-m/%-d/%Y')
   end
 
   def format_context(status)
@@ -364,7 +359,9 @@ helpers do
       status = Marshal.load redis.lindex(status_key, index)
     else
       status = replace
-      redis.lset(status_key, index, Marshal.dump(status))
+      if rel_id == (redis.get id_key)
+        redis.lset(status_key, index, Marshal.dump(status))
+      end
     end
     redis.set id_key, status.attrs[:id_str]
     redis.disconnect!
@@ -432,6 +429,21 @@ helpers do
     pocket = Pocket.client(:access_token => access_token)
     pocket.add :url => url, :tweet_id => tweet_id
     true
+  end
+
+  def update_timezone(timezone)
+    timezone_key = 'soc:uid:' + session[:uid] + ':timezone'
+    redis = Redis.new
+    if timezone.nil? or timezone.empty?
+      timezone = redis.get timezone_key
+    else
+      redis.set timezone_key, timezone
+    end
+    redis.disconnect!
+    if timezone.nil? or timezone.empty?
+        timezone = 'America/New_York'
+    end
+    session[:timezone] = timezone
   end
 end
 
@@ -517,6 +529,7 @@ end
 post '/' do
   delta = 0
   replace = nil
+  update_timezone params[:z]
   if !params[:p].nil?
     delta = 1
   elsif !params[:n].nil?
