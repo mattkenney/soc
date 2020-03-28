@@ -28,6 +28,12 @@ document.addEventListener('touchcancel', cancel);
 document.addEventListener('touchend', cancel);
 document.getElementById('n').focus();
 
+[].slice.call(document.getElementsByClassName("soc_link")).forEach(function (elem) {
+  elem.addEventListener("click", function (evt) {
+    if (!confirm('Leave soc?')) evt.preventDefault();
+  })
+});
+
 document.getElementById('tz').value = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
 })();
